@@ -1,0 +1,175 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: psql
+    restart: always
+    environment:
+      POSTGRES_USER: devuser
+      POSTGRES_PASSWORD: devpass
+      POSTGRES_DB: devdb
+    volumes:
+        - pgdata:/var/lib/postgresql/data
+    networks:
+        - devops-net
+    labels:
+      - "com.example.container_id=psql"
+      - "com.example.environment-development"
+      - "com.example.version=14"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"    
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - devops-net
+    labels:
+      - "com.example.container_id=adminer"
+      - "com.example.environment=development"
+      - "com.example.version=latest"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  nginx:
+    image: nginx
+    container_name: nginx
+    restart: always
+    ports:
+      - "8081:80"
+    networks:
+      - devops-net
+    labels:
+      - "com.example.container_id=nginx"
+      - "com.example.environment=development"
+      - "com.example.version=latest"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  prometheus:
+    image: prom/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=1d'
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:z
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - devops-net
+    labels:
+      - "com.example.container_id=prometheus"
+      - "com.example.environment=development"
+      - "com.example.version=latest"
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.0
+    container_name: cadvisor
+    privileged: true
+    ports:
+      - "8082:8080"
+    networks:
+      - devops-net
+    labels:
+      - "com.example.container_id=cadvisor"
+      - "com.example.environment=development"
+      - "com.example.version=latest"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/kmsg:/dev/kmsg:ro
+    devices:
+      - /dev/kmsg
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  grafana:
+    image: grafana/grafana:10.3.1
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - devops-net
+    labels:
+      - "com.example.container_id=grafana"
+      - "com.example.environment=development"
+      - "com.example.version=latest"
+    restart: always
+    volumes:
+      - grafana_data:/var/lib/grafana
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+  jenkins:
+    build:
+      context: ./jenkins-docker
+    user: root
+    group_add:
+      - 971
+    container_name: jenkins
+    restart: always
+    ports:
+      - "8083:8080"
+    volumes:
+      - ./jenkins_home:/var/jenkins_home:z
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - devops-net
+    labels:
+      - "com.example.container_id=jenkins"
+      - "com.example.environment=development"
+      - "com.example.version=latest"
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+  stress:
+    image: progrium/stress
+    container_name: stress
+    command: ["--cpu", "8", "--vm", "3", "--vm-bytes", "1G", "--timeout", "600"]
+    profiles:
+      - stress-test
+    networks:
+      - devops-net
+
+networks:
+  devops-net:
+    external: true
+    
+volumes:
+  pgdata:
+  prometheus-data:
+  grafana_data: 
