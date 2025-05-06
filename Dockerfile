@@ -1,8 +1,6 @@
-FROM jenkins/jenkins:lts
+FROM fedora:latest
 
-USER root
+RUN dnf install -y curl && dnf clean all
 
-RUN apt-get update && apt-get install -y docker.io
-
-USER jenkins
+CMD ["/bin/bash"]
 
