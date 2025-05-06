@@ -1,14 +1,6 @@
 pipeline {
     agent any
 
-stages {
-        stage('Clone') {
-            steps {
-                git credentialsId: 'github_ssh_key', url: 'git@github.com:jogajaga/CICD.git'
-            }
-        }
-    }
-
     environment {
         POSTGRES_IMAGE = "postgres:15"
         POSTGRES_CONTAINER = "ci-pgsql"
@@ -19,6 +11,11 @@ stages {
     }
 
     stages {
+    	stage('Clone') {
+            steps {
+                git credentialsId: 'github_ssh_key', url: 'git@github.com:jogajaga/CICD.git'
+            }
+        }
         stage('Prepare Volume') {
             steps {
                 script {
