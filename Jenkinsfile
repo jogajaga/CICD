@@ -5,7 +5,7 @@ pipeline {
         POSTGRES_IMAGE = "postgres:15"
         POSTGRES_CONTAINER = "ci-pgsql"
         POSTGRES_VOLUME = "pgsql_data_ci"
-        POSTGRES_USER = "ci_user"
+        POSTGRES_USER = "postgres"              
         POSTGRES_PASSWORD = "ci_pass"
         POSTGRES_DB = "ci_database"
     }
@@ -60,9 +60,9 @@ pipeline {
             steps {
                 script {
                     sh """
-                        docker exec -u postgres ${POSTGRES_CONTAINER} psql -d ${POSTGRES_DB} -c \\
+                        docker exec -u ${POSTGRES_USER} ${POSTGRES_CONTAINER} psql -d ${POSTGRES_DB} -c \\
                         "DO \$\$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'jenkins_ci') THEN CREATE USER jenkins_ci WITH PASSWORD 'jenkins_pass'; END IF; END \$\$;"
-                        docker exec -u postgres ${POSTGRES_CONTAINER} psql -d ${POSTGRES_DB} -c \\
+                        docker exec -u ${POSTGRES_USER} ${POSTGRES_CONTAINER} psql -d ${POSTGRES_DB} -c \\
                         "GRANT ALL PRIVILEGES ON DATABASE ${POSTGRES_DB} TO jenkins_ci;"
                     """
                 }
@@ -73,7 +73,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                        docker exec -u postgres ${POSTGRES_CONTAINER} psql -d ${POSTGRES_DB} -c "\\du"
+                        docker exec -u ${POSTGRES_USER} ${POSTGRES_CONTAINER} psql -d ${POSTGRES_DB} -c "\\du"
                     """
                 }
             }
