@@ -4,7 +4,7 @@ pipeline {
     environment {
         POSTGRES_IMAGE = "postgres:15"
         POSTGRES_CONTAINER = "ci-pgsql"
-        POSTGRES_VOLUME = "pgsql_data_ci_fresh"   // Новый том, чтобы избежать конфликта с предыдущими ролями
+        POSTGRES_VOLUME = "pgsql_data_ci_fresh"
         POSTGRES_USER = "postgres"
         POSTGRES_PASSWORD = "ci_pass"
         POSTGRES_DB = "ci_database"
@@ -56,15 +56,21 @@ pipeline {
             }
         }
 
-        stage('Create Additional User or Schema (optional)') {
+        stage('Create Additional User') {
             steps {
                 script {
-                    sh """
-                        docker exec -u ${POSTGRES_USER} ${POSTGRES_CONTAINER} psql -d ${POSTGRES_DB} -c \\
-                        "DO \$\$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'jenkins_ci') THEN CREATE USER jenkins_ci WITH PASSWORD 'jenkins_pass'; END IF; END \$\$;"
-                        docker exec -u ${POSTGRES_USER} ${POSTGRES_CONTAINER} psql -d ${POSTGRES_DB} -c \\
-                        "GRANT ALL PRIVILEGES ON DATABASE ${POSTGRES_DB} TO jenkins_ci;"
-                    """
+                    sh '''
+                        docker exec -u postgres ci-pgsql psql -d ci_database -c "
+                        DO \$\$ BEGIN
+                            IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'jenkins_ci') THEN
+                                CREATE USER jenkins_ci WITH PASSWORD 'jenkins_pass';
+                            END IF;
+                        END \$\$;"
+                    '''
+                    sh '''
+                        docker exec -u postgres ci-pgsql psql -d ci_database -c "
+                        GRANT ALL PRIVILEGES ON DATABASE ci_database TO jenkins_ci;"
+                    '''
                 }
             }
         }
@@ -72,9 +78,7 @@ pipeline {
         stage('Verify Connection') {
             steps {
                 script {
-                    sh """
-                        docker exec -u ${POSTGRES_USER} ${POSTGRES_CONTAINER} psql -d ${POSTGRES_DB} -c "\\du"
-                    """
+                    sh 'docker exec -u postgres ci-pgsql psql -d ci_database -c "\\du"'
                 }
             }
         }
