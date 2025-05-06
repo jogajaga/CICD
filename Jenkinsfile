@@ -4,8 +4,8 @@ pipeline {
     environment {
         POSTGRES_IMAGE = "postgres:15"
         POSTGRES_CONTAINER = "ci-pgsql"
-        POSTGRES_VOLUME = "pgsql_data_ci"
-        POSTGRES_USER = "postgres"              
+        POSTGRES_VOLUME = "pgsql_data_ci_fresh"   // Новый том, чтобы избежать конфликта с предыдущими ролями
+        POSTGRES_USER = "postgres"
         POSTGRES_PASSWORD = "ci_pass"
         POSTGRES_DB = "ci_database"
     }
