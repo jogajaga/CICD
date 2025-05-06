@@ -11,11 +11,6 @@ pipeline {
     }
 
     stages {
-    	stage('Clone') {
-            steps {
-                git credentialsId: 'github_ssh_key', url: 'git@github.com:jogajaga/CICD.git'
-            }
-        }
         stage('Prepare Volume') {
             steps {
                 script {
@@ -44,7 +39,6 @@ pipeline {
         stage('Wait for PostgreSQL') {
             steps {
                 script {
-                    // Ждём, пока Postgres запустится
                     sh """
                         for i in {1..10}; do
                           docker exec ${POSTGRES_CONTAINER} pg_isready && break
@@ -60,8 +54,10 @@ pipeline {
             steps {
                 script {
                     sh """
-                        docker exec -u postgres ${POSTGRES_CONTAINER} psql -d ${POSTGRES_DB} -c \\
-                        "CREATE USER jenkins_ci WITH PASSWORD 'jenkins_pass'; GRANT ALL PRIVILEGES ON DATABASE ${POSTGRES_DB} TO jenkins_ci;"
+                        docker exec -u ${POSTGRES_USER} ${POSTGRES_CONTAINER} psql -d ${POSTGRES_DB} -c \\
+                        "DO \$\$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'jenkins_ci') THEN CREATE USER jenkins_ci WITH PASSWORD 'jenkins_pass'; END IF; END \$\$;"
+                        docker exec -u ${POSTGRES_USER} ${POSTGRES_CONTAINER} psql -d ${POSTGRES_DB} -c \\
+                        "GRANT ALL PRIVILEGES ON DATABASE ${POSTGRES_DB} TO jenkins_ci;"
                     """
                 }
             }
@@ -71,7 +67,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                        docker exec -u postgres ${POSTGRES_CONTAINER} psql -d ${POSTGRES_DB} -c "\\du"
+                        docker exec -u ${POSTGRES_USER} ${POSTGRES_CONTAINER} psql -d ${POSTGRES_DB} -c "\\du"
                     """
                 }
             }
