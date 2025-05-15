@@ -4,16 +4,14 @@ services:
   jenkins:
     build:
       context: ./jenkins-docker
-    user: root
-    group_add:
-      - 971
     container_name: jenkins
     restart: always
     ports:
       - "8080:8080"
     volumes:
-      - ./jenkins_home:/var/jenkins_home:z
-      - /var/run/docker.sock:/var/run/docker.sock:z
+      - jenkins-data:/var/jenkins_home:z
+    depends_on:
+      - dind
     networks:
       - cicd-net
     labels:
@@ -24,6 +22,27 @@ services:
         max-size: "5m"
         max-file: "2"
 
+  dind:
+    image: docker:dind
+    container_name: dind
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=
+    volumes:
+      - dind-storage:/var/lib/docker
+    restart: always
+    labels:
+      - "com.example.container_id=dind"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
 networks:
   cicd-net:
     external: true
+
+volumes:
+  jenkins-data:
+  dind-storage:

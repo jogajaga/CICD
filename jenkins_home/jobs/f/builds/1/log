@@ -1,0 +1,17 @@
+Started by user [8mha:////4PbKTR+6sDmZGyfrU9NZY48hTZGzeRnPtdNnJc41D+23AAAAmh+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAyOEgY+/dLi1CL9pMSi9IzU4hIASUmrMsMAAAA=[0mMiroslav
+Running as SYSTEM
+Building in workspace /var/jenkins_home/workspace/f
+[f] $ /bin/sh -xe /tmp/jenkins14453766478707385274.sh
++ docker version
+Client:
+ Version:           20.10.24+dfsg1
+ API version:       1.41
+ Go version:        go1.19.8
+ Git commit:        297e128
+ Built:             Sat Oct 12 15:19:49 2024
+ OS/Arch:           linux/amd64
+ Context:           default
+ Experimental:      true
+permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get "http://%2Fvar%2Frun%2Fdocker.sock/v1.24/version": dial unix /var/run/docker.sock: connect: permission denied
+Build step 'Execute shell' marked build as failure
+Finished: FAILURE
